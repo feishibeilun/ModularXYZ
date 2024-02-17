@@ -1,0 +1,22 @@
+#             only for maya 2022+ (writed in python3)
+#
+#             ModularXYZ.py 
+#             version alpha, last modified 17/02/2024
+#             Copyright (C) 2024 XiaoyueZhang
+#             Email: xiaoyuezhangart@gmail.com
+#             Website: https://www.artstation.com/xiaoyuezhang
+#
+# This program is free software: you can redistribute it and/or modify. More function are still need to be added, you can follow up through my page.
+#--------------------------------------------------------------------------------#
+#                    I N S T A L L A T I O N:
+#
+# Copy the "ModularXYZ.py" together with "grid_functions.py", Icon folder and curves folder to your Maya scriptsdirectory:
+#     MyDocuments\Maya\scripts\
+#         use this text as a python script within Maya:
+'''
+import ModularXYZ
+ModularXYZ.create_custom_slider_window()
+'''
+# this text can be entered from the script editor and can be made into a button
+#
+# note: PyQt and sip or pyside  libraries are necessary to run this file
