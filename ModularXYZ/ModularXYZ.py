@@ -23,7 +23,7 @@ ModularXYZ.create_custom_slider_window()
 #
 # note: PyQt and sip or pyside  libraries are necessary to run this file
 
-from PySide2.QtWidgets import QMainWindow, QSlider, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QPushButton
+from PySide2.QtWidgets import QMainWindow, QSlider, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QPushButton, QLineEdit
 from PySide2.QtCore import Qt, QPoint
 from PySide2.QtGui import QPainter
 from shiboken2 import wrapInstance
@@ -102,6 +102,8 @@ class CustomSliderWindow(QMainWindow):
         self.buttonsLayout.addWidget(self.button2)
         self.mainLayout.addLayout(self.buttonsLayout)
         
+        self.setupDivider()
+        
         self.row1Layout = QHBoxLayout()
         self.buttonBoxMap1X1 = QPushButton("BoxMap1X1", self)
         self.buttonBoxMap2X2 = QPushButton("BoxMap2X2", self)
@@ -130,6 +132,8 @@ class CustomSliderWindow(QMainWindow):
         self.row3Layout.addWidget(self.buttonBoxMap16X16)
         self.row3Layout.addWidget(self.buttonOverlapClean)
         self.mainLayout.addLayout(self.row3Layout)
+        
+        self.setupCustomScaleRow()
 
     # The rest of your class methods remain unchanged...
 
@@ -154,6 +158,32 @@ class CustomSliderWindow(QMainWindow):
         grid_functions.grid_up()
         self.update_grid_spacing_display()
         self.update_grid_size()
+
+    def setupDivider(self):
+        # Left line
+        leftLine = QFrame()
+        leftLine.setFrameShape(QFrame.HLine)
+        leftLine.setFrameShadow(QFrame.Sunken)
+
+        # Right line
+        rightLine = QFrame()
+        rightLine.setFrameShape(QFrame.HLine)
+        rightLine.setFrameShadow(QFrame.Sunken)
+
+        # Label for 'UV ToolKit'
+        label = QLabel('UV ToolKit')
+        label.setAlignment(Qt.AlignCenter)
+        label.setStyleSheet(" margin-left: 5px; margin-right: 5px; font-size: 10pt;")
+
+        # Layout for line and label
+        dividerLayout = QHBoxLayout()
+        dividerLayout.addWidget(leftLine, 1)  # Line stretches to fill space on the left
+        dividerLayout.addWidget(label)        # Label stays in the middle
+        dividerLayout.addWidget(rightLine, 1)  # Line stretches to fill space on the right
+
+        # Add the divider layout to the main layout
+        self.mainLayout.addLayout(dividerLayout)
+
         
     def BoxMap1X1_clicked(self):
         UVboxmap.boxmap1X1()
@@ -172,6 +202,43 @@ class CustomSliderWindow(QMainWindow):
 
     def OverlapClean_clicked(self):
         UVboxmap.OverlapClean()
+
+    def setupCustomScaleRow(self):
+        # Row layout
+        customScaleLayout = QHBoxLayout()
+
+        # 'Custom Scale' button instead of a label
+        self.customScaleBtn = QPushButton("Custom Scale")
+        self.customScaleBtn.clicked.connect(self.onCustomScaleClicked)
+        customScaleLayout.addWidget(self.customScaleBtn)
+
+        # Input fields for X, Y, Z with placeholders
+        self.xInput = QLineEdit()
+        self.xInput.setPlaceholderText("X")
+        customScaleLayout.addWidget(self.xInput)
+
+        self.yInput = QLineEdit()
+        self.yInput.setPlaceholderText("Y")
+        customScaleLayout.addWidget(self.yInput)
+
+        self.zInput = QLineEdit()
+        self.zInput.setPlaceholderText("Z")
+        customScaleLayout.addWidget(self.zInput)
+
+        # Add the row to the main layout
+        self.mainLayout.addLayout(customScaleLayout)
+
+    def onCustomScaleClicked(self):
+        # Example action when 'Custom Scale' button is clicked
+        # Here, you might gather the X, Y, Z values and do something with them
+        x_val = self.xInput.text()
+        y_val = self.yInput.text()
+        z_val = self.zInput.text()
+        print(f"Custom Scale button clicked with X: {x_val}, Y: {y_val}, Z: {z_val}")
+
+        # Implement the desired functionality for when the button is clicked
+        # This could involve reading the X, Y, Z values and applying them as needed
+
     
     def update_grid_size(self):
         if self.gridSizeMultiplier is not None:
