@@ -31,6 +31,7 @@ from maya import OpenMayaUI as omui
 import maya.cmds as cmds
 import grid_functions
 import UVboxmap
+import customboxmapuv
 
 def get_maya_main_window():
     main_window_ptr = omui.MQtUtil.mainWindow()
@@ -234,6 +235,8 @@ class CustomSliderWindow(QMainWindow):
         x_val = self.xInput.text()
         y_val = self.yInput.text()
         z_val = self.zInput.text()
+        
+        customboxmapuv(x_val, y_val, z_val)
         print(f"Custom Scale button clicked with X: {x_val}, Y: {y_val}, Z: {z_val}")
 
         # Implement the desired functionality for when the button is clicked
