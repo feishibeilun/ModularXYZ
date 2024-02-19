@@ -29,7 +29,8 @@ from PySide2.QtGui import QPainter
 from shiboken2 import wrapInstance
 from maya import OpenMayaUI as omui
 import maya.cmds as cmds
-import grid_functions  # Ensure grid_functions.py is in the correct path
+import grid_functions
+import UVboxmap
 
 def get_maya_main_window():
     main_window_ptr = omui.MQtUtil.mainWindow()
@@ -100,6 +101,35 @@ class CustomSliderWindow(QMainWindow):
         self.buttonsLayout.addWidget(self.button1)
         self.buttonsLayout.addWidget(self.button2)
         self.mainLayout.addLayout(self.buttonsLayout)
+        
+        self.row1Layout = QHBoxLayout()
+        self.buttonBoxMap1X1 = QPushButton("BoxMap1X1", self)
+        self.buttonBoxMap2X2 = QPushButton("BoxMap2X2", self)
+        self.buttonBoxMap1X1.clicked.connect(self.BoxMap1X1_clicked)
+        self.buttonBoxMap2X2.clicked.connect(self.BoxMap2X2_clicked)
+        self.row1Layout.addWidget(self.buttonBoxMap1X1)
+        self.row1Layout.addWidget(self.buttonBoxMap2X2)
+        self.mainLayout.addLayout(self.row1Layout)
+
+        # Row 2
+        self.row2Layout = QHBoxLayout()
+        self.buttonBoxMap4X4 = QPushButton("BoxMap4X4", self)
+        self.buttonBoxMap8X8 = QPushButton("BoxMap8X8", self)
+        self.buttonBoxMap4X4.clicked.connect(self.BoxMap4X4_clicked)
+        self.buttonBoxMap8X8.clicked.connect(self.BoxMap8X8_clicked)
+        self.row2Layout.addWidget(self.buttonBoxMap4X4)
+        self.row2Layout.addWidget(self.buttonBoxMap8X8)
+        self.mainLayout.addLayout(self.row2Layout)
+
+        # Row 3
+        self.row3Layout = QHBoxLayout()
+        self.buttonBoxMap16X16 = QPushButton("BoxMap16X16", self)
+        self.buttonOverlapClean = QPushButton("OverlapClean", self)
+        self.buttonBoxMap16X16.clicked.connect(self.BoxMap16X16_clicked)
+        self.buttonOverlapClean.clicked.connect(self.OverlapClean_clicked)
+        self.row3Layout.addWidget(self.buttonBoxMap16X16)
+        self.row3Layout.addWidget(self.buttonOverlapClean)
+        self.mainLayout.addLayout(self.row3Layout)
 
     # The rest of your class methods remain unchanged...
 
@@ -124,7 +154,25 @@ class CustomSliderWindow(QMainWindow):
         grid_functions.grid_up()
         self.update_grid_spacing_display()
         self.update_grid_size()
+        
+    def BoxMap1X1_clicked(self):
+        UVboxmap.boxmap1X1()
 
+    def BoxMap2X2_clicked(self):
+        UVboxmap.boxmap2X2()
+    
+    def BoxMap4X4_clicked(self):
+        UVboxmap.boxmap4X4()
+    
+    def BoxMap8X8_clicked(self):
+        UVboxmap.boxmap8X8()
+    
+    def BoxMap16X16_clicked(self):
+        UVboxmap.boxmap16X16()
+
+    def OverlapClean_clicked(self):
+        UVboxmap.OverlapClean()
+    
     def update_grid_size(self):
         if self.gridSizeMultiplier is not None:
             mapping = [0, 1, 5, 10, 15, 20, 25, 30]
