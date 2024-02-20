@@ -23,7 +23,7 @@ ModularXYZ.create_custom_slider_window()
 #
 # note: PyQt and sip or pyside  libraries are necessary to run this file
 
-from PySide2.QtWidgets import QMainWindow, QSlider, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QPushButton, QLineEdit
+from PySide2.QtWidgets import QMainWindow, QSlider, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QPushButton, QLineEdit, QFrame
 from PySide2.QtCore import Qt, QPoint
 from PySide2.QtGui import QPainter
 from shiboken2 import wrapInstance
