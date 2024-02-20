@@ -2,9 +2,6 @@ import maya.cmds as cmds
 
 def boxmap1X1():
     selected_objects = cmds.ls(selection=True)
-    if not selected_objects:
-        cmds.error("Please select at least one object.")
-        return
 
     for obj in selected_objects:
         # Apply Automatic Box Mapping with a fixed scale of 4x4 units for each projection plane
@@ -17,9 +14,6 @@ boxmap1X1()
 
 def boxmap2X2():
     selected_objects = cmds.ls(selection=True)
-    if not selected_objects:
-        cmds.error("Please select at least one object.")
-        return
 
     for obj in selected_objects:
         # Apply Automatic Box Mapping with a fixed scale of 4x4 units for each projection plane
@@ -32,9 +26,6 @@ boxmap2X2()
 
 def boxmap4X4():
     selected_objects = cmds.ls(selection=True)
-    if not selected_objects:
-        cmds.error("Please select at least one object.")
-        return
 
     for obj in selected_objects:
         # Apply Automatic Box Mapping with a fixed scale of 4x4 units for each projection plane
@@ -46,9 +37,6 @@ boxmap4X4()
 
 def boxmap8X8():
     selected_objects = cmds.ls(selection=True)
-    if not selected_objects:
-        cmds.error("Please select at least one object.")
-        return
 
     for obj in selected_objects:
         # Apply Automatic Box Mapping with a fixed scale of 4x4 units for each projection plane
@@ -60,9 +48,6 @@ boxmap8X8()
 
 def boxmap16X16():
     selected_objects = cmds.ls(selection=True)
-    if not selected_objects:
-        cmds.error("Please select at least one object.")
-        return
 
     for obj in selected_objects:
         # Apply Automatic Box Mapping with a fixed scale of 4x4 units for each projection plane
@@ -73,11 +58,7 @@ def boxmap16X16():
 boxmap16X16()
 
 def OverlapClean():
-    selected_objects = cmds.ls(selection=True, type='transform')
-    
-    if not selected_objects:
-        cmds.error("Please select at least one object with UVs.")
-        return
+    selected_objects = cmds.ls(selection=True, type='transform')   
     
     # Store the current selection to reselect after operation
     original_selection = cmds.ls(sl=True)
