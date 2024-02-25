@@ -32,6 +32,7 @@ import maya.cmds as cmds
 import grid_functions
 import UVboxmap
 import customboxmapuv
+import grid_slice
 
 def get_maya_main_window():
     main_window_ptr = omui.MQtUtil.mainWindow()
@@ -135,6 +136,10 @@ class CustomSliderWindow(QMainWindow):
         self.mainLayout.addLayout(self.row3Layout)
         
         self.setupCustomScaleRow()
+        
+        self.setupModelingToolkitDivider()
+        
+        self.setupVoxelSliceRow()
 
     # The rest of your class methods remain unchanged...
 
@@ -185,6 +190,23 @@ class CustomSliderWindow(QMainWindow):
         # Add the divider layout to the main layout
         self.mainLayout.addLayout(dividerLayout)
 
+    def setupModelingToolkitDivider(self):
+        # Divider Title
+        dividerLabel = QLabel('Modeling Toolkit')
+        dividerLabel.setAlignment(Qt.AlignCenter)
+        
+        # Divider Lines
+        line1 = QFrame(); line1.setFrameShape(QFrame.HLine); line1.setFrameShadow(QFrame.Sunken)
+        line2 = QFrame(); line2.setFrameShape(QFrame.HLine); line2.setFrameShadow(QFrame.Sunken)
+        
+        # Divider Layout
+        dividerLayout = QHBoxLayout()
+        dividerLayout.addWidget(line1, 1)
+        dividerLayout.addWidget(dividerLabel)
+        dividerLayout.addWidget(line2, 1)
+        
+        # Add Divider to Main Layout
+        self.mainLayout.addLayout(dividerLayout)
         
     def BoxMap1X1_clicked(self):
         UVboxmap.boxmap1X1()
@@ -232,15 +254,38 @@ class CustomSliderWindow(QMainWindow):
     def onCustomScaleClicked(self):
         # Example action when 'Custom Scale' button is clicked
         # Here, you might gather the X, Y, Z values and do something with them
-        x_val = self.xInput.text()
-        y_val = self.yInput.text()
-        z_val = self.zInput.text()
+        x_val = float(self.xInput.text())
+        y_val = float(self.yInput.text())
+        z_val = float(self.zInput.text())
         
-        customboxmapuv(x_val, y_val, z_val)
+        customboxmapuv.customboxmapuv(x_val, y_val, z_val)
         print(f"Custom Scale button clicked with X: {x_val}, Y: {y_val}, Z: {z_val}")
 
         # Implement the desired functionality for when the button is clicked
         # This could involve reading the X, Y, Z values and applying them as needed
+
+    def setupVoxelSliceRow(self):
+        # Row Layout for Voxel Slice
+        voxelSliceLayout = QHBoxLayout()
+        
+        # Voxel Slice Button
+        voxelSliceBtn = QPushButton('Voxel Slice')
+        voxelSliceBtn.clicked.connect(self.onVoxelSliceClicked)
+        voxelSliceLayout.addWidget(voxelSliceBtn)
+        
+        # Input Slot for Voxel Slice Value
+        self.voxelSliceValueInput = QLineEdit()
+        voxelSliceLayout.addWidget(self.voxelSliceValueInput)
+        
+        # Add Row to Main Layout
+        self.mainLayout.addLayout(voxelSliceLayout)
+
+    def onVoxelSliceClicked(self):
+        # Retrieve the grid size value from the input slot
+        gridSizeValue = float(self.voxelSliceValueInput.text())
+        # Call the grid_slice function with the retrieved value
+        grid_slice.grid_slice(gridSizeValue)  # Ensure grid_slice is defined in grid_functions module
+
 
     
     def update_grid_size(self):
