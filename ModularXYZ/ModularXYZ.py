@@ -23,7 +23,7 @@ ModularXYZ.create_custom_slider_window()
 #
 # note: PyQt and sip or pyside  libraries are necessary to run this file
 
-from PySide2.QtWidgets import QMainWindow, QSlider, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QPushButton, QLineEdit, QFrame
+from PySide2.QtWidgets import QMainWindow, QSlider, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QPushButton, QLineEdit, QFrame, QListWidget
 from PySide2.QtCore import Qt, QPoint
 from PySide2.QtGui import QPainter
 from shiboken2 import wrapInstance
@@ -33,6 +33,7 @@ import grid_functions
 import UVboxmap
 import customboxmapuv
 import grid_slice
+import material_functions
 
 def get_maya_main_window():
     main_window_ptr = omui.MQtUtil.mainWindow()
@@ -64,7 +65,7 @@ class CustomSliderWindow(QMainWindow):
     def __init__(self, parent=get_maya_main_window()):
         super(CustomSliderWindow, self).__init__(parent)
         self.setWindowTitle('ModularXYZ')  # Update the window title here
-        self.setGeometry(100, 100, 400, 100)
+        self.setGeometry(100, 100, 100, 100)
         self.gridSpacingValue = 0.125  # Default starting value
         self.gridSizeMultiplier = 0  # Initialize multiplier
         self.initUI()
@@ -140,6 +141,10 @@ class CustomSliderWindow(QMainWindow):
         self.setupModelingToolkitDivider()
         
         self.setupVoxelSliceRow()
+        
+        self.setupSectionWithDividerAndColumns()
+        
+        
 
     # The rest of your class methods remain unchanged...
 
@@ -301,6 +306,84 @@ class CustomSliderWindow(QMainWindow):
         mapping = [0.125, 0.25, 0.5, 1, 2, 4, 8, 16]
         closest_index = mapping.index(min(mapping, key=lambda x: abs(x - current_spacing)))
         self.slider1.setValue(closest_index)
+
+
+    def setupSectionWithDividerAndColumns(self):
+        self.setupAdditionalDivider()
+        self.setupTwoColumns()
+
+    def setupAdditionalDivider(self):
+        # Additional divider similar to setupDivider
+        dividerLabel = QLabel('----------------')
+        dividerLabel.setAlignment(Qt.AlignCenter)
+        
+        # Divider Lines
+        line1 = QFrame(); line1.setFrameShape(QFrame.HLine); line1.setFrameShadow(QFrame.Sunken)
+        line2 = QFrame(); line2.setFrameShape(QFrame.HLine); line2.setFrameShadow(QFrame.Sunken)
+        
+        # Divider Layout
+        dividerLayout = QHBoxLayout()
+        dividerLayout.addWidget(line1, 1)
+        dividerLayout.addWidget(dividerLabel)
+        dividerLayout.addWidget(line2, 1)
+        
+        # Add Divider to Main Layout
+        self.mainLayout.addLayout(dividerLayout)
+
+    def setupTwoColumns(self):
+        # Layout for two columns
+        twoColumnsLayout = QHBoxLayout()
+
+        # First Column with Buttons
+        self.column1Layout = QVBoxLayout()
+        self.getMTLButton = QPushButton("GetMTL")
+        self.assignMTLButton = QPushButton("AssignMTL")
+        self.renameButton = QPushButton("Rename")
+        self.cleanButton = QPushButton("Clean")
+        self.getMTLButton.clicked.connect(self.onGetMTLClicked)
+        self.assignMTLButton.clicked.connect(self.onAssignMTLClicked)
+        # Add buttons to the column layout
+        self.column1Layout.addWidget(self.getMTLButton)
+        self.column1Layout.addWidget(self.assignMTLButton)
+        self.column1Layout.addWidget(self.renameButton)
+        self.column1Layout.addWidget(self.cleanButton)
+
+        # Second Column with List Window
+        self.listWindow = QListWidget()
+        # Example items addition
+        # for itemText in ['Item 1', 'Item 2', 'Item 3']:  # Replace with your actual list
+        #     self.listWindow.addItem(itemText)
+
+        # Add both columns to the layout
+        twoColumnsLayout.addLayout(self.column1Layout)
+        twoColumnsLayout.addWidget(self.listWindow)
+
+        # Add the two columns layout to the main layout
+        self.mainLayout.addLayout(twoColumnsLayout)
+
+    # You can call this method to update the list dynamically
+    def updateListWindow(self, itemsList):
+        self.listWindow.clear()  # Clear existing items
+        for itemText in itemsList:
+            self.listWindow.addItem(itemText)
+            
+    def onGetMTLClicked(self):
+        unique_materials = material_functions.fetch_materials_selection()
+        unique_materials_list = list(unique_materials)
+        self.listWindow.clear()
+        for item in unique_materials_list:
+            self.listWindow.addItem(item)
+    
+    def onAssignMTLClicked(self):
+        selected_items = self.listWindow.selectedItems()
+        material_name = selected_items[0].text()
+        maya_selection = cmds.ls(selection=True)
+        shading_groups = cmds.listConnections(f"{material_name}.outColor", type='shadingEngine')
+        shading_group = shading_groups[0]
+        for obj in maya_selection:
+            cmds.sets(obj, edit=True, forceElement=shading_group)
+               
+
 
 def create_custom_slider_window():
     try:
