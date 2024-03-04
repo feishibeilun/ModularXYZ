@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+import os
 
 def process_materials(selection, unique_materials, is_component=False):
     """
@@ -77,8 +78,53 @@ def assign_material_to_selection(self):
         cmds.sets(obj, edit=True, forceElement=shading_group)
 
     cmds.inform(f"Assigned {material_name} to selected objects.")
+    
+def list_all_materials():
+    # List all materials in the scene
+    all_materials = cmds.ls(materials=True)
+    return all_materials
 
+def create_lambert_shader_with_texture(image_path):
+    # Create Lambert shader
+    shader = cmds.shadingNode('lambert', asShader=True, name='lambert')
+    
+    # Create file texture node
+    file_texture = cmds.shadingNode('file', asTexture=True, name='fileTextureNode')
+    # Set file texture attributes
+    cmds.setAttr(file_texture + '.fileTextureName', image_path, type='string')
+    
+    # Create 2D texture placement node
+    place2dTexture = cmds.shadingNode('place2dTexture', asUtility=True, name='place2dTextureNode')
+    # Connect 2D texture placement attributes to file texture node
+    attributes = ['coverage', 'translateFrame', 'rotateFrame', 'mirrorU', 'mirrorV', 'stagger', 'wrapU', 'wrapV', 'repeatUV', 'offset', 'rotateUV', 'noiseUV', 'vertexUvOne', 'vertexUvTwo', 'vertexUvThree', 'vertexCameraOne']
+    for attr in attributes:
+        cmds.connectAttr(place2dTexture + '.' + attr, file_texture + '.' + attr, force=True)
+    
+    cmds.connectAttr(place2dTexture + '.outUV', file_texture + '.uvCoord', force=True)
+    cmds.connectAttr(place2dTexture + '.outUvFilterSize', file_texture + '.uvFilterSize', force=True)
+    
+    # Connect file texture to Lambert shader's color attribute
+    cmds.connectAttr(file_texture + '.outColor', shader + '.color', force=True)
 
-# Example of executing the function
-unique_materials = fetch_materials_selection()
-print(unique_materials)
+    # Create shading group for the Lambert shader
+    shading_group = cmds.sets(renderable=True, noSurfaceShader=True, empty=True, name='lambertShadingGroup')
+    
+    # Connect the Lambert shader to the shading group
+    cmds.connectAttr(shader + '.outColor', shading_group + '.surfaceShader', force=True)
+
+    return shader, shading_group
+
+def convert_images_to_shaders():
+    # Prompt the user to select image files
+    image_files = cmds.fileDialog2(fileFilter='Image Files (*.png *.jpg *.jpeg *.bmp *.tiff *.exr *.tif);;', dialogStyle=2, fm=4)
+    if not image_files:
+        print("No image files selected.")
+        return
+    
+    # Create Lambert shader for each selected image
+    for image_file in image_files:
+        shader, shading_group = create_lambert_shader_with_texture(image_file)
+        print(f"Created Lambert shader with texture: {shader}, and its shading group: {shading_group}")
+
+# You can call convert_images_to_shaders() to start the process
+convert_images_to_shaders() 

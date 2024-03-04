@@ -23,7 +23,7 @@ ModularXYZ.create_custom_slider_window()
 #
 # note: PyQt and sip or pyside  libraries are necessary to run this file
 
-from PySide2.QtWidgets import QMainWindow, QSlider, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QPushButton, QLineEdit, QFrame, QListWidget
+from PySide2.QtWidgets import QMainWindow, QSlider, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QPushButton, QLineEdit, QFrame, QListWidget, QAbstractItemView, QListWidgetItem
 from PySide2.QtCore import Qt, QPoint
 from PySide2.QtGui import QPainter
 from shiboken2 import wrapInstance
@@ -33,7 +33,9 @@ import grid_functions
 import UVboxmap
 import customboxmapuv
 import grid_slice
-import material_functions
+import material_functions as MF
+import grid_sample 
+import math
 
 def get_maya_main_window():
     main_window_ptr = omui.MQtUtil.mainWindow()
@@ -69,6 +71,7 @@ class CustomSliderWindow(QMainWindow):
         self.gridSpacingValue = 0.125  # Default starting value
         self.gridSizeMultiplier = 0  # Initialize multiplier
         self.initUI()
+        self.listWindow.focusOutEvent = self.deselectAllItems
 
     def initUI(self):
         self.centralWidget = QWidget(self)
@@ -144,7 +147,9 @@ class CustomSliderWindow(QMainWindow):
         
         self.setupSectionWithDividerAndColumns()
         
-        
+    def deselectAllItems(self, event):
+        self.listWindow.clearSelection()
+        event.ignore() 
 
     # The rest of your class methods remain unchanged...
 
@@ -314,7 +319,7 @@ class CustomSliderWindow(QMainWindow):
 
     def setupAdditionalDivider(self):
         # Additional divider similar to setupDivider
-        dividerLabel = QLabel('----------------')
+        dividerLabel = QLabel('Shader Toolkit')
         dividerLabel.setAlignment(Qt.AlignCenter)
         
         # Divider Lines
@@ -338,21 +343,30 @@ class CustomSliderWindow(QMainWindow):
         self.column1Layout = QVBoxLayout()
         self.getMTLButton = QPushButton("GetMTL")
         self.assignMTLButton = QPushButton("AssignMTL")
-        self.renameButton = QPushButton("Rename")
-        self.cleanButton = QPushButton("Clean")
+        self.allMTLButton = QPushButton("AllMTL")
+        self.onIMG2MTLButton = QPushButton("IMG2MTL")
+        self.boxsampleButton = QPushButton("BoxSample")
+        self.ballsampleButton = QPushButton("BallSample")
         self.getMTLButton.clicked.connect(self.onGetMTLClicked)
         self.assignMTLButton.clicked.connect(self.onAssignMTLClicked)
+        self.allMTLButton.clicked.connect(self.onallMTLClicked)
+        self.onIMG2MTLButton.clicked.connect(self.onIMG2MTLClicked)
+        self.boxsampleButton.clicked.connect(self.onboxsampleClicked)
         # Add buttons to the column layout
         self.column1Layout.addWidget(self.getMTLButton)
         self.column1Layout.addWidget(self.assignMTLButton)
-        self.column1Layout.addWidget(self.renameButton)
-        self.column1Layout.addWidget(self.cleanButton)
+        self.column1Layout.addWidget(self.allMTLButton)
+        self.column1Layout.addWidget(self.onIMG2MTLButton)
+        self.column1Layout.addWidget(self.boxsampleButton)
+        self.column1Layout.addWidget(self.ballsampleButton)
 
         # Second Column with List Window
         self.listWindow = QListWidget()
-        # Example items addition
-        # for itemText in ['Item 1', 'Item 2', 'Item 3']:  # Replace with your actual list
-        #     self.listWindow.addItem(itemText)
+        self.listWindow.setSelectionMode(QAbstractItemView.MultiSelection)
+        # Allow editing of items
+        self.listWindow.setEditTriggers(QAbstractItemView.DoubleClicked | QAbstractItemView.SelectedClicked)
+        self.listWindow.itemDoubleClicked.connect(self.onItemDoubleClicked)  # Connect to handle double click
+        self.listWindow.itemChanged.connect(self.onMaterialRenamed)  # Connect to handle item renaming(self.onItemDoubleClicked)
 
         # Add both columns to the layout
         twoColumnsLayout.addLayout(self.column1Layout)
@@ -368,11 +382,27 @@ class CustomSliderWindow(QMainWindow):
             self.listWindow.addItem(itemText)
             
     def onGetMTLClicked(self):
-        unique_materials = material_functions.fetch_materials_selection()
-        unique_materials_list = list(unique_materials)
+        # Fetch unique materials
+        unique_materials = MF.fetch_materials_selection()
+
+        # Clear the list window
         self.listWindow.clear()
-        for item in unique_materials_list:
+
+        # Iterate over unique materials
+        for item_text in unique_materials:
+            # Create a QListWidgetItem with the material name
+            item = QListWidgetItem(item_text)
+            print("Flags before setting:", item.flags())
+
+            # Add the Qt.ItemIsEditable flag
+            item.setFlags(item.flags() | Qt.ItemIsEditable)
+            print("Flags after setting:", item.flags())
+            # Add the item to the list window
             self.listWindow.addItem(item)
+
+        # Update the list window
+        self.updateListWindow(unique_materials)
+
     
     def onAssignMTLClicked(self):
         selected_items = self.listWindow.selectedItems()
@@ -382,6 +412,60 @@ class CustomSliderWindow(QMainWindow):
         shading_group = shading_groups[0]
         for obj in maya_selection:
             cmds.sets(obj, edit=True, forceElement=shading_group)
+            
+            
+    def onallMTLClicked(self):
+        unique_materials_list = MF.list_all_materials()
+        for item in unique_materials_list:
+            self.listWindow.addItem(item)
+        self.updateListWindow(unique_materials_list)
+    
+    def onIMG2MTLClicked(self):
+        MF.convert_images_to_shaders()
+    
+    def onMaterialRenamed(self, item):
+        new_name = item.text()
+        old_name = item.data(Qt.UserRole)  # Retrieve the original material name
+        # Perform the renaming operation using the MF module
+        MF.rename_material(old_name, new_name)
+    
+    def onItemDoubleClicked(self, item):
+        self.listWindow.editItem(item)
+        print("Item double-clicked:", item.text())  # Print the text of the double-clicked item
+        print("Item flags:", item.flags())  # Print the flags of the double-clicked item
+        print("Item is editable:", bool(item.flags() & Qt.ItemIsEditable))  # Print if the item is editable
+        
+    def onboxsampleClicked(self):
+        # Get selected items from the list window
+        selected_items = self.listWindow.selectedItems()
+        selected_items = list(selected_items)
+        # Count the total number of selected items
+        num_cubes = len(selected_items)
+        grid_size = math.ceil(math.sqrt(num_cubes))
+        actual_num_cubes = grid_size ** 2
+        n = 0
+        #grid_sample.create_cube_grid(total_selected)
+        for index, item in enumerate(selected_items):
+            material_name = item.text()
+            print(material_name)
+            xpos = n * 2
+            zpos = 0
+            cube = cmds.polyCube()[0]
+            cmds.move(xpos, 0, zpos, cube)
+            shading_groups = cmds.listConnections(f"{material_name}.outColor", type='shadingEngine')
+            shading_group = shading_groups[0]
+            cmds.sets(cube, edit=True, forceElement=shading_group)
+            num_cubes -= 1
+            n = n + 1
+
+    
+    def updateListWindow(self, itemsList):
+        self.listWindow.clear()  # Clear existing items
+        for itemText in itemsList:
+            item = QListWidgetItem(itemText)
+            item.setData(Qt.UserRole, itemText)  # Set the original material name as data
+            self.listWindow.addItem(item)
+
                
 
 
